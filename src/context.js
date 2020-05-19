@@ -5,16 +5,68 @@ const ProductContext = React.createContext();
 
 class ProductProvider extends Component {
   state = {
-    products: storeProducts,
-    detailProduct
+    products: [],
+    cart: [],
+    detailProduct,
+    openModal: false,
+    modalProduct: detailProduct
   };
 
-  handleDetail = () => {
-    console.log('detail handler');
+  componentDidMount() {
+    this.setProducts();
+  }
+
+  setProducts = () => {
+    let products = [];
+    storeProducts.forEach(item => products.push({...item}));
+    this.setState(() => (
+      { products }
+    ));
+  }
+
+  getProduct = id => {
+    return this.state.products.find((product) => (product.id === id));
   };
 
-  addToCart = () => {
-    console.log('Add to cart');
+  handleDetail = (id) => {
+    const product = this.getProduct(id);
+    this.setState(() => (
+      { detailProduct: product }
+    ));
+  };
+
+  openTheModal = id => {
+    const product = this.getProduct(id);
+    this.setState(() => (
+      {
+        openModal: true,
+        modalProduct: product
+      }
+    ));
+  }
+
+  closeModal = () => {
+    this.setState(() => (
+      {
+        openModal: false,
+      }
+    ));
+  }
+
+  addToCart = (id) => {
+    let tempProducts = [...this.state.products];
+    const index = tempProducts.indexOf(this.getProduct(id));
+    const product = tempProducts[index];
+    product.inCart = true;
+    product.count = 1;
+    const price = product.price;
+    product.price = price;
+    this.setState(() => (
+      {
+        products: tempProducts,
+        cart: [...this.state.cart, product]
+      }
+    ));
   };
 
   render() {
@@ -22,7 +74,10 @@ class ProductProvider extends Component {
       <ProductContext.Provider value={{
         ...this.state,
         handleDetail: this.handleDetail,
-        addToCart: this.addToCart
+        addToCart: this.addToCart,
+        openTheModal: this.openTheModal,
+        closeModal: this.closeModal
+
       }}>
         {this.props.children}
       </ProductContext.Provider>
